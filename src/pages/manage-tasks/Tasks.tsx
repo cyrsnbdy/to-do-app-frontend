@@ -9,10 +9,14 @@ import CheckTasks from "./components/CheckTasks";
 import { DeleteTaskModal } from "./components/DeleteModal";
 import { EditTaskModal } from "./components/EditModal";
 import { ViewTaskModal } from "./components/viewTaskModal";
+import { useTokenStore } from "@/stores/token/token.store";
+
 
 function Tasks() {
   const navigate = useNavigate();
   const { setLogout } = useAuthStore();
+  const initialized = useTokenStore((state) => state.initialized);
+const accessToken = useTokenStore((state) => state.accessToken);
   const {
     tasks,
     getTasks,
@@ -57,14 +61,18 @@ function Tasks() {
   }
 
   // Load tasks
-  useEffect(() => {
-    const fetchTasks = async () => {
-      setLoadingTasks(true);
-      await getTasks();
-      setLoadingTasks(false);
-    };
-    fetchTasks();
-  }, [getTasks]);
+useEffect(() => {
+  if (!initialized) return;
+  if (!accessToken) return;
+
+  const fetchTasks = async () => {
+    setLoadingTasks(true);
+    await getTasks();
+    setLoadingTasks(false);
+  };
+
+  fetchTasks();
+}, [initialized, accessToken, getTasks]);
 
   // Filtered + searched tasks
   const displayedTasks = useMemo(() => {

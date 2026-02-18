@@ -1,13 +1,21 @@
 import axiosInstance from "../../axios/axios-instance";
-import type { AccountType } from "../../types/account/account.type";
+import type { AccountType, LoginDto } from "../../types/account/account.type";
 
 export const registerApi = async (data: Partial<AccountType>) => {
   const response = await axiosInstance.post("/auth/register", data);
   return response.data;
 };
 
-export const loginApi = async (data: Partial<AccountType>) => {
-  const response = await axiosInstance.post("/auth/login", data);
+type LoginResponse = {
+  message: string;
+  accessToken: string;
+};
+
+export const loginApi = async (data: LoginDto) => {
+  const response = await axiosInstance.post<LoginResponse>(
+    "/auth/login",
+    data
+  );
   return response.data;
 };
 

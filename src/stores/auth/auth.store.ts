@@ -4,6 +4,9 @@ import toast from "react-hot-toast";
 import { create } from "zustand";
 import { loginApi, logoutApi, registerApi } from "../../api/auth/auth.api";
 
+import { useTokenStore } from "@/stores/token/token.store";
+
+
 export const useAuthStore = create<AuthStoreType>((set) => ({
   loading: false,
   user: null, // Missing
@@ -41,17 +44,13 @@ export const useAuthStore = create<AuthStoreType>((set) => ({
       toast.success(response.message);
 
       // Store user data and auth state
-      if (response.user) {
-        set({
-          user: response.user,
-          isAuthenticated: true,
-        });
-      }
+if (response.accessToken) {
+  useTokenStore.getState().setToken(response.accessToken);
 
-      // Store token if needed
-      if (response.token) {
-        localStorage.setItem("token", response.token);
-      }
+  set({
+    isAuthenticated: true,
+  });
+}
 
       return true;
     } catch (error) {
@@ -76,7 +75,7 @@ export const useAuthStore = create<AuthStoreType>((set) => ({
       });
 
       // Remove token from storage
-      localStorage.removeItem("token");
+      useTokenStore.getState().setToken(null);
 
       return true;
     } catch (error) {
@@ -89,11 +88,10 @@ export const useAuthStore = create<AuthStoreType>((set) => ({
   },
 
   // Add a method to check auth status
-  checkAuth: () => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      // Optionally validate token with backend
-      set({ isAuthenticated: true });
-    }
-  },
+checkAuth: () => {
+  const token = useTokenStore.getState().accessToken;
+
+  set({ isAuthenticated: !!token });
+},
+
 }));

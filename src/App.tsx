@@ -2,6 +2,8 @@ import Loading from "@/pages/authentication/components/Loading";
 import Splashscreen from "@/pages/authentication/components/Splashscreen";
 import { AnimatePresence } from "framer-motion";
 import { Toaster } from "react-hot-toast";
+import { useEffect } from "react";
+import { useTokenStore } from "@/stores/token/token.store";
 import {
   createBrowserRouter,
   Route,
@@ -40,6 +42,12 @@ function AppContent() {
 }
 
 function App() {
+  const init = useTokenStore((state) => state.init);
+
+  useEffect(() => {
+    init();
+  }, [init]);
+
   const router = createBrowserRouter([
     {
       path: "*",
@@ -54,5 +62,6 @@ function App() {
     </div>
   );
 }
+
 
 export default App;
