@@ -1,11 +1,45 @@
+import { forgotPasswordApi } from "@/api/account/password-reset.api";
 import Button from "@/components/ButtonComponents.tsx";
 import Logo from "@/images/to-do.png";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import ModalPopup from "../../components/ModalPopup";
 import InputFields from "./components/InputFields";
 
 function ForgotPassword() {
-  const [accepted, setAccepted] = useState(false);
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const navigate = useNavigate();
+
+  const handleForgotPassword = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await forgotPasswordApi({ email });
+
+      // Show popup instead of navigating
+      setSuccessMessage(
+        response.message || "The reset code has been sent to your email.",
+      );
+
+      setShowModal(true);
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirm = () => {
+    setShowModal(false);
+    navigate("/send-code", { state: { email } });
+  };
+
   return (
     <div className="bg-[#1E319D] w-screen h-screen flex flex-col items-center justify-center">
       <div className="bg-white absolute inset-3.5 rounded-4xl">
@@ -27,21 +61,35 @@ function ForgotPassword() {
           <span className="font-bold text-2xl">FORGOT PASSWORD</span>
 
           <InputFields
-            className="shadow-2xl"
+            type="email"
+            name="email"
+            value={email}
+            setValue={setEmail}
             placeholder="Enter verification email"
           />
 
-          <Link to="/send-code">
-            <Button
-              type="submit"
-              id="confirm"
-              name="confirm"
-              label="send code"
-              className=" px-20 py-1.5"
-            />
-          </Link>
+          {error && <span className="text-red-500 text-sm">{error}</span>}
+
+          <Button
+            type="button"
+            id="confirm"
+            name="confirm"
+            label={loading ? "Sending..." : "Send Code"}
+            className="px-20 py-1.5"
+            onClick={handleForgotPassword}
+            disabled={loading}
+          />
         </div>
       </div>
+
+      {/* ✅ Modal Popup */}
+      <ModalPopup
+        isOpen={showModal}
+        title="Email Sent"
+        type="success"
+        message={successMessage}
+        onClose={() => setShowModal(false)}
+      />
     </div>
   );
 }

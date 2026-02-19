@@ -9,13 +9,15 @@ export const registerApi = async (data: Partial<AccountType>) => {
 type LoginResponse = {
   message: string;
   accessToken: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
 };
 
 export const loginApi = async (data: LoginDto) => {
-  const response = await axiosInstance.post<LoginResponse>(
-    "/auth/login",
-    data
-  );
+  const response = await axiosInstance.post<LoginResponse>("/auth/login", data);
   return response.data;
 };
 

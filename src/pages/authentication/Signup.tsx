@@ -2,19 +2,21 @@ import Button from "@/components/ButtonComponents.tsx";
 import Logo from "@/images/to-do.png";
 import { useAuthStore } from "@/stores/auth/auth.store";
 import type { RegisterDto } from "@/types/account/account.type";
-import { showError } from "@/utils/error/error.utils";
-import { useState, type ChangeEvent, type FormEvent } from "react";
-import toast from "react-hot-toast";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import CheckboxComponent from "./components/CheckboxComponent";
+import ModalPopup from "../../components/ModalPopup";
 import CustomInput from "./components/CustomInput";
+import TermsModal from "./components/TermsModal";
 
 function Signup() {
   const { loading, setRegister } = useAuthStore();
   const navigate = useNavigate();
-
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
   const [accepted, setAccepted] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalTitle, setModalTitle] = useState("Notice");
 
   const [form, setForm] = useState<RegisterDto>({
     name: "",
@@ -30,35 +32,53 @@ function Signup() {
   const submitForm = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    // Validation
+    if (!form.name || !form.email || !form.password) {
+      setModalTitle("Validation Error");
+      setModalMessage("Please fill in all fields.");
+      setShowPopup(true);
+      return;
+    }
+
+    if (form.password !== confirmPassword) {
+      setModalTitle("Validation Error");
+      setModalMessage("Passwords do not match.");
+      setShowPopup(true);
+      return;
+    }
+
+    if (!accepted) {
+      setModalTitle("Terms Required");
+      setModalMessage(
+        "You must accept the terms and conditions before signing up.",
+      );
+      setShowPopup(true);
+      return;
+    }
+
     try {
-      // Validation
-      if (!form.name || !form.email || !form.password) {
-        return toast.error("Please fill in all fields");
-      }
-
-      if (form.password !== confirmPassword) {
-        return toast.error("Passwords do not match");
-      }
-
-      if (!accepted) {
-        return toast.error("Please accept the terms and conditions");
-      }
-
-      // Assume setRegister throws if it fails
       await setRegister(form);
 
-      toast.success("Account created successfully!");
+      setModalTitle("Success 🎉");
+      setModalMessage("Account created successfully!");
+      setShowPopup(true);
 
       // Reset form
       setForm({ name: "", email: "", password: "" });
       setConfirmPassword("");
       setAccepted(false);
-
-      navigate("/login");
     } catch (error) {
-      showError(error);
+      setModalTitle("Registration Failed");
+      setModalMessage("Something went wrong. Please try again.");
+      setShowPopup(true);
     }
   };
+
+  useEffect(() => {
+    if (!showPopup && modalTitle === "Success 🎉") {
+      navigate("/login");
+    }
+  }, [showPopup, modalTitle, navigate]);
 
   return (
     <div className="bg-[#1E319D] w-screen h-screen flex flex-col items-center justify-center">
@@ -120,12 +140,27 @@ function Signup() {
             />
 
             <div className="my-3">
-              <CheckboxComponent
-                id="terms"
-                label="I accept the terms and conditions"
-                checked={accepted}
-                onChange={setAccepted}
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={accepted}
+                  onChange={(e) => setAccepted(e.target.checked)}
+                />
+
+                <label className="text-sm">
+                  I accept the{" "}
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation(); // 🚀 prevents checkbox toggle
+                      setShowTerms(true);
+                    }}
+                    className="text-[#1E319D] font-semibold cursor-pointer hover:underline"
+                  >
+                    terms and conditions
+                  </span>
+                </label>
+              </div>
 
               <Button
                 type="submit"
@@ -133,7 +168,7 @@ function Signup() {
                 name="signup"
                 label={loading ? "Signing Up..." : "Sign Up"}
                 className="mt-5 px-30 py-1.5 w-full"
-                disabled={loading || !accepted}
+                disabled={loading}
               />
             </div>
 
@@ -147,10 +182,22 @@ function Signup() {
                   Login
                 </Link>
               </span>
+              <TermsModal
+                isOpen={showTerms}
+                onClose={() => setShowTerms(false)}
+              />
             </div>
           </form>
         </div>
       </div>
+      <ModalPopup
+        isOpen={showPopup}
+        title={modalTitle}
+        message={modalMessage}
+        type={modalTitle === "Success 🎉" ? "success" : "warning"}
+        autoCloseTime={3000}
+        onClose={() => setShowPopup(false)}
+      />
     </div>
   );
 }

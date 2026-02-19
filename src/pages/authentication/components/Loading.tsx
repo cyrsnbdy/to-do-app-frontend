@@ -1,21 +1,12 @@
 import Logo from "@/images/to-do.png";
+import { useAuthStore } from "@/stores/auth/auth.store";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 function Loading() {
   const navigate = useNavigate();
-
-  const basicToken = localStorage.getItem("basicToken");
-  let userEmail = "";
-  if (basicToken) {
-    try {
-      const decoded = atob(basicToken);
-      userEmail = decoded.split(":")[0];
-    } catch {
-      userEmail = "";
-    }
-  }
+  const { user } = useAuthStore();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -35,11 +26,10 @@ function Loading() {
     >
       <div className="text-white text-center text-xl">
         <span>Welcome! </span>
-        <span className="font-bold">{userEmail || "username"}</span>
+        <span className="font-bold">{user?.name || "User"}</span>
       </div>
-      <div>
-        <img src={Logo} alt="Logo" className="w-55 p-4 pb-6" />
-      </div>
+
+      <img src={Logo} alt="Logo" className="w-55 p-4 pb-6" />
 
       <div className="pb-45">
         <div className="w-13 h-13 border-4 border-white border-t-transparent rounded-full animate-spin" />

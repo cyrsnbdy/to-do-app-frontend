@@ -1,34 +1,40 @@
 import { useRef, useState } from "react";
 
-function OtpInput({ length = 6, onComplete }) {
-  const [otp, setOtp] = useState(Array(length).fill(""));
-  const inputsRef = useRef([]);
+interface OtpInputProps {
+  length?: number;
+  onComplete?: (otp: string) => void;
+}
 
-  const handleChange = (value, index) => {
-    if (!/^\d?$/.test(value)) return; // Only digits
+function OtpInput({ length = 6, onComplete }: OtpInputProps) {
+  const [otp, setOtp] = useState<string[]>(Array(length).fill(""));
+  const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+
+  const handleChange = (value: string, index: number) => {
+    if (!/^\d?$/.test(value)) return;
 
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
 
-    // Move to next input
     if (value && index < length - 1) {
-      inputsRef.current[index + 1].focus();
+      inputsRef.current[index + 1]?.focus();
     }
 
-    // If all filled → trigger onComplete
     if (newOtp.every((digit) => digit !== "")) {
       onComplete?.(newOtp.join(""));
     }
   };
 
-  const handleKeyDown = (e, index) => {
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number,
+  ) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
-      inputsRef.current[index - 1].focus();
+      inputsRef.current[index - 1]?.focus();
     }
   };
 
-  const handlePaste = (e) => {
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
     const paste = e.clipboardData.getData("text").slice(0, length);
     if (!/^\d+$/.test(paste)) return;
 
@@ -37,7 +43,7 @@ function OtpInput({ length = 6, onComplete }) {
 
     newOtp.forEach((digit, index) => {
       if (inputsRef.current[index]) {
-        inputsRef.current[index].value = digit;
+        inputsRef.current[index]!.value = digit;
       }
     });
 
@@ -52,9 +58,11 @@ function OtpInput({ length = 6, onComplete }) {
         <input
           key={index}
           type="text"
-          maxLength="1"
+          maxLength={1}
           value={digit}
-          ref={(el) => (inputsRef.current[index] = el)}
+          ref={(el) => {
+            inputsRef.current[index] = el;
+          }}
           onChange={(e) => handleChange(e.target.value, index)}
           onKeyDown={(e) => handleKeyDown(e, index)}
           className="w-10.5 h-13.25 text-center text-xl border border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

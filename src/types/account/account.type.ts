@@ -16,3 +16,14 @@ export type LoginDto = {
   email: string;
   password: string;
 };
+
+export type ForgotPasswordDto = {
+  email: string;
+};
+
+// What frontend sends when resetting password
+export type ResetPasswordDto = {
+  email: string;
+  code: string;
+  password: string;
+};

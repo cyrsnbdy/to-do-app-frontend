@@ -6,7 +6,7 @@ interface InputFieldsProps {
   name: string;
   value: string;
   placeholder?: string;
-  setValue: (value: string) => void;
+  setValue?: (value: string) => void; // ✅ made optional
 }
 
 function InputFields({
@@ -18,12 +18,10 @@ function InputFields({
 }: InputFieldsProps) {
   const [showPassword, setShowPassword] = useState(false);
 
-  // Determine the actual input type based on password visibility
   const inputType = type === "password" && showPassword ? "text" : type;
 
-  // Function to toggle password visibility
   const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
+    setShowPassword((prev) => !prev);
   };
 
   return (
@@ -33,11 +31,14 @@ function InputFields({
         name={name}
         value={value}
         placeholder={placeholder}
-        onChange={(e) => setValue(e.target.value)}
-        className="border border-black px-4.5 h-13 w-80.5 rounded-[20px] shadow-lg placeholder-gray-900 pr-12" // Added pr-12 for right padding to accommodate the eye icon
+        onChange={(e) => {
+          if (typeof setValue === "function") {
+            setValue(e.target.value); // ✅ safe check
+          }
+        }}
+        className="border border-black px-4.5 h-13 w-80.5 rounded-[20px] shadow-lg placeholder-gray-900 pr-12"
       />
 
-      {/* Eye icon for password visibility toggle */}
       {type === "password" && (
         <button
           type="button"
@@ -45,19 +46,11 @@ function InputFields({
           className="absolute inset-y-0 right-0 flex items-center pr-4"
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
-          {/* Eye icon - you can replace this with an actual icon library or SVG */}
           <div className="w-5 h-5 flex items-center justify-center">
             {showPassword ? (
-              // Icon for when password is visible (eye with slash)
-              <svg className="w-5 h-5">
-                <HiMiniEye size={20} />
-                <line x1="1" y1="1" x2="23" y2="23"></line>
-              </svg>
+              <HiMiniEye size={20} />
             ) : (
-              // Icon for when password is hidden (eye)
-              <svg className="w-5 h-5">
-                <HiMiniEyeSlash size={20} />
-              </svg>
+              <HiMiniEyeSlash size={20} />
             )}
           </div>
         </button>

@@ -6,7 +6,6 @@ import { loginApi, logoutApi, registerApi } from "../../api/auth/auth.api";
 
 import { useTokenStore } from "@/stores/token/token.store";
 
-
 export const useAuthStore = create<AuthStoreType>((set) => ({
   loading: false,
   user: null, // Missing
@@ -16,8 +15,6 @@ export const useAuthStore = create<AuthStoreType>((set) => ({
     set({ loading: true });
     try {
       const response = await registerApi(data);
-      console.log("Response: ", response);
-      toast.success(response.message);
 
       // If registration returns user data, update store
       if (response.user) {
@@ -41,16 +38,15 @@ export const useAuthStore = create<AuthStoreType>((set) => ({
     set({ loading: true });
     try {
       const response = await loginApi(data);
-      toast.success(response.message);
 
-      // Store user data and auth state
-if (response.accessToken) {
-  useTokenStore.getState().setToken(response.accessToken);
+      if (response.accessToken) {
+        useTokenStore.getState().setToken(response.accessToken);
 
-  set({
-    isAuthenticated: true,
-  });
-}
+        set({
+          user: response.user, // ✅ now full user object
+          isAuthenticated: true,
+        });
+      }
 
       return true;
     } catch (error) {
@@ -88,10 +84,9 @@ if (response.accessToken) {
   },
 
   // Add a method to check auth status
-checkAuth: () => {
-  const token = useTokenStore.getState().accessToken;
+  checkAuth: () => {
+    const token = useTokenStore.getState().accessToken;
 
-  set({ isAuthenticated: !!token });
-},
-
+    set({ isAuthenticated: !!token });
+  },
 }));

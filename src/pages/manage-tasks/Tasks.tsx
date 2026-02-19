@@ -1,7 +1,9 @@
 import Button from "@/components/ButtonComponents";
+import ModalPopup from "@/components/ModalPopup";
 import Logo from "@/images/to-do.png";
 import { useAuthStore } from "@/stores/auth/auth.store";
 import { useTaskStore } from "@/stores/tasks/tasks.store";
+import { useTokenStore } from "@/stores/token/token.store";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AddTaskModal } from "./components/AddTaskModal";
@@ -9,14 +11,12 @@ import CheckTasks from "./components/CheckTasks";
 import { DeleteTaskModal } from "./components/DeleteModal";
 import { EditTaskModal } from "./components/EditModal";
 import { ViewTaskModal } from "./components/viewTaskModal";
-import { useTokenStore } from "@/stores/token/token.store";
-
 
 function Tasks() {
   const navigate = useNavigate();
-  const { setLogout } = useAuthStore();
+  const { user, setLogout } = useAuthStore();
   const initialized = useTokenStore((state) => state.initialized);
-const accessToken = useTokenStore((state) => state.accessToken);
+  const accessToken = useTokenStore((state) => state.accessToken);
   const {
     tasks,
     getTasks,
@@ -26,9 +26,15 @@ const accessToken = useTokenStore((state) => state.accessToken);
     updateTask,
   } = useTaskStore();
 
-  // Loading states
   const [loadingTasks, setLoadingTasks] = useState(false);
   const [, setActionLoading] = useState(false);
+
+  // Popup State
+  const [popup, setPopup] = useState({
+    open: false,
+    message: "",
+    type: "info" as "success" | "error" | "warning" | "info",
+  });
 
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -44,51 +50,36 @@ const accessToken = useTokenStore((state) => state.accessToken);
   const [viewTaskText, setViewTaskText] = useState("");
   const [viewTaskCompleted, setViewTaskCompleted] = useState(false);
 
-  // Search and filter
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "completed" | "pending">("all");
 
-  // Decode basicToken for user email
-  const basicToken = localStorage.getItem("basicToken");
-  let userEmail = "";
-  if (basicToken) {
-    try {
-      const decoded = atob(basicToken);
-      userEmail = decoded.split(":")[0];
-    } catch {
-      userEmail = "";
-    }
-  }
+  useEffect(() => {
+    if (!initialized || !accessToken) return;
 
-  // Load tasks
-useEffect(() => {
-  if (!initialized) return;
-  if (!accessToken) return;
+    const fetchTasks = async () => {
+      setLoadingTasks(true);
+      await getTasks();
+      setLoadingTasks(false);
+    };
 
-  const fetchTasks = async () => {
-    setLoadingTasks(true);
-    await getTasks();
-    setLoadingTasks(false);
-  };
+    fetchTasks();
+  }, [initialized, accessToken, getTasks]);
 
-  fetchTasks();
-}, [initialized, accessToken, getTasks]);
-
-  // Filtered + searched tasks
   const displayedTasks = useMemo(() => {
     return tasks.filter((task) => {
       const matchesSearch = task.task
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
+
       const matchesFilter =
         filter === "all" ||
         (filter === "completed" && task.completed) ||
         (filter === "pending" && !task.completed);
+
       return matchesSearch && matchesFilter;
     });
   }, [tasks, searchQuery, filter]);
 
-  // Logout
   const handleLogout = async () => {
     try {
       await setLogout();
@@ -98,12 +89,19 @@ useEffect(() => {
     }
   };
 
-  // Task handlers
   const handleAddTask = async (taskText: string) => {
     setActionLoading(true);
     const success = await createTask({ task: taskText });
     setActionLoading(false);
-    if (success) setIsAddModalOpen(false);
+
+    if (success) {
+      setIsAddModalOpen(false);
+      setPopup({
+        open: true,
+        message: "Task added successfully!",
+        type: "success",
+      });
+    }
   };
 
   const openEditModal = (id: string, text: string) => {
@@ -114,13 +112,21 @@ useEffect(() => {
 
   const handleEditTask = async (newText: string) => {
     if (!editTaskId) return;
+
     setActionLoading(true);
     const success = await updateTask(editTaskId, { task: newText });
     setActionLoading(false);
+
     if (success) {
       setIsEditModalOpen(false);
       setEditTaskId(null);
       setEditTaskText("");
+
+      setPopup({
+        open: true,
+        message: "Task updated successfully!",
+        type: "success",
+      });
     }
   };
 
@@ -132,13 +138,21 @@ useEffect(() => {
 
   const handleDeleteTask = async () => {
     if (!selectedTaskId) return;
+
     setActionLoading(true);
     const success = await deleteTask(selectedTaskId);
     setActionLoading(false);
+
     if (success) {
       setIsDeleteModalOpen(false);
       setSelectedTaskId(null);
       setSelectedTaskText("");
+
+      setPopup({
+        open: true,
+        message: "Task deleted successfully!",
+        type: "success",
+      });
     }
   };
 
@@ -148,21 +162,18 @@ useEffect(() => {
     setIsViewModalOpen(true);
   };
 
-  // Completion summary
   const completedCount = tasks.filter((t) => t.completed).length;
 
   return (
     <div className="bg-[#1E319D] w-screen h-screen flex flex-col items-center justify-center">
       <div className="bg-white absolute inset-1.5 rounded-4xl flex flex-col justify-center items-center my-1">
-        {/* Logo and User */}
         <div className="flex flex-col mb-8 items-center gap-4">
           <img src={Logo} alt="Logo" className="w-36" />
           <span>
-            Welcome, <b>{userEmail || "username"}</b>
+            Welcome, <b>{user?.name}</b>
           </span>
         </div>
 
-        {/* Add Task Button */}
         <div className="mt-6">
           <Button
             label="Add Task"
@@ -171,45 +182,22 @@ useEffect(() => {
           />
         </div>
 
-        {/* Search + Filter */}
         <div className="mt-6 flex flex-col sm:flex-row gap-4 items-center w-full justify-center">
           <input
             type="text"
             placeholder="Search tasks..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="border p-2 rounded w-64"
+            className="border p-2 rounded-3xl px-3 w-75"
           />
-          <div className="flex gap-2">
-            <button
-              className={`px-3 py-1 rounded ${filter === "all" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-              onClick={() => setFilter("all")}
-            >
-              All
-            </button>
-            <button
-              className={`px-3 py-1 rounded ${filter === "completed" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-              onClick={() => setFilter("completed")}
-            >
-              Completed
-            </button>
-            <button
-              className={`px-3 py-1 rounded ${filter === "pending" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-              onClick={() => setFilter("pending")}
-            >
-              Pending
-            </button>
-          </div>
         </div>
 
-        {/* Completion Summary */}
         <div className="mt-4 text-gray-600">
           {tasks.length > 0
             ? `${completedCount}/${tasks.length} tasks completed`
             : "No tasks yet"}
         </div>
 
-        {/* Task List */}
         <div className="mt-4 overflow-y-auto flex flex-col gap-3 h-80 w-full px-4">
           {loadingTasks ? (
             <div className="text-center py-10">Loading tasks...</div>
@@ -237,12 +225,12 @@ useEffect(() => {
           )}
         </div>
 
-        {/* Modals */}
         <AddTaskModal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           onAdd={handleAddTask}
         />
+
         {editTaskId && (
           <EditTaskModal
             isOpen={isEditModalOpen}
@@ -252,6 +240,7 @@ useEffect(() => {
             onEdit={handleEditTask}
           />
         )}
+
         {selectedTaskId && (
           <DeleteTaskModal
             isOpen={isDeleteModalOpen}
@@ -261,6 +250,7 @@ useEffect(() => {
             onDelete={handleDeleteTask}
           />
         )}
+
         {isViewModalOpen && (
           <ViewTaskModal
             isOpen={isViewModalOpen}
@@ -270,7 +260,16 @@ useEffect(() => {
           />
         )}
 
-        {/* Logout */}
+        {/* Popup */}
+        <ModalPopup
+          isOpen={popup.open}
+          title="Notice"
+          message={popup.message}
+          type={popup.type}
+          autoCloseTime={2500}
+          onClose={() => setPopup((prev) => ({ ...prev, open: false }))}
+        />
+
         <div className="mt-6">
           <Button label="Logout" className="w-52 h-10" onClick={handleLogout} />
         </div>
