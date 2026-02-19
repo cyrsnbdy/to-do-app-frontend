@@ -28,24 +28,21 @@ function ConfirmCode() {
         code: otpCode,
       });
 
+      const token = response.resetToken; // ✅ store locally
+
       setSuccessMessage(response.message || "Code verified successfully.");
-
-      setResetToken(response.resetToken); // ✅ store token
-
       setShowModal(true);
+
+      setTimeout(() => {
+        navigate("/change-password", {
+          state: { resetToken: token },
+        });
+      }, 2000);
     } catch (err: any) {
       setError(err.response?.data?.message || "Invalid or expired code");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleConfirm = () => {
-    setShowModal(false);
-
-    navigate("/change-password", {
-      state: { resetToken }, // ✅ now works
-    });
   };
 
   return (

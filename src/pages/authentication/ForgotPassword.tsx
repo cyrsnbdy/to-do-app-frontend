@@ -28,16 +28,15 @@ function ForgotPassword() {
       );
 
       setShowModal(true);
+
+      setTimeout(() => {
+        navigate("/send-code", { state: { email } });
+      }, 2000);
     } catch (err: any) {
       setError(err.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleConfirm = () => {
-    setShowModal(false);
-    navigate("/send-code", { state: { email } });
   };
 
   return (

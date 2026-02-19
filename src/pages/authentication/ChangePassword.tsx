@@ -47,16 +47,15 @@ function ChangePassword() {
       setSuccessMessage(response.message || "Password changed successfully.");
 
       setShowModal(true);
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to change password");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleConfirm = () => {
-    setShowModal(false);
-    navigate("/login");
   };
 
   return (
