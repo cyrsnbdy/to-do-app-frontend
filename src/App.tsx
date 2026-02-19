@@ -1,9 +1,9 @@
 import Loading from "@/pages/authentication/components/Loading";
 import Splashscreen from "@/pages/authentication/components/Splashscreen";
-import { AnimatePresence } from "framer-motion";
-import { Toaster } from "react-hot-toast";
-import { useEffect } from "react";
 import { useTokenStore } from "@/stores/token/token.store";
+import { AnimatePresence } from "framer-motion";
+import { useEffect } from "react";
+import { Toaster } from "react-hot-toast";
 import {
   createBrowserRouter,
   Route,
@@ -12,6 +12,8 @@ import {
   useLocation,
 } from "react-router-dom";
 import { PageTransition } from "./components/PageTransition";
+import ProtectedRoute from "./components/ProtectedRoute";
+import PublicRoute from "./components/PublicRoute";
 import ChangePassword from "./pages/authentication/ChangePassword";
 import ConfirmCode from "./pages/authentication/ConfirmCode";
 import ForgotPassword from "./pages/authentication/ForgotPassword";
@@ -28,9 +30,34 @@ function AppContent() {
       <PageTransition key={location.pathname}>
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<Splashscreen />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/tasks" element={<Tasks />} />
+
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            }
+          />
+
+          <Route
+            path="/signup"
+            element={
+              <PublicRoute>
+                <Signup />
+              </PublicRoute>
+            }
+          />
+
+          <Route
+            path="/tasks"
+            element={
+              <ProtectedRoute>
+                <Tasks />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="/loading" element={<Loading />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/send-code" element={<ConfirmCode />} />
@@ -62,6 +89,5 @@ function App() {
     </div>
   );
 }
-
 
 export default App;

@@ -45,31 +45,36 @@ export default function ModalPopup({
 
   if (!isOpen) return null;
 
-  const typeStyles = {
-    success: "bg-green-100 text-green-700",
-    error: "bg-red-100 text-red-700",
-    warning: "bg-yellow-100 text-yellow-700",
-    info: "bg-blue-100 text-blue-700",
-  };
-
   return (
     <div
       onMouseDown={handleOutsideClick}
-      className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50 animate-fadeIn"
+      className="fixed inset-0 flex items-center justify-center bg-black/20 z-50"
     >
       <div
         ref={modalRef}
-        className="bg-white rounded-4xl p-8 w-[400px] shadow-2xl text-center transform transition-all duration-200 scale-100"
+        className="bg-white rounded-lg border-2 border-[#1E319D] p-6 w-full max-w-sm shadow-lg text-center relative"
       >
-        {/* Title Badge */}
-        <div
-          className={`inline-block px-4 py-1 rounded-full text-sm mb-4 ${typeStyles[type]}`}
+        {/* Close button (X) */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 font-bold text-lg"
         >
-          {title}
-        </div>
+          &times;
+        </button>
+
+        {/* Title */}
+        <h2 className="text-xl text-[#1E319D] font-semibold my-4">{title}</h2>
 
         {/* Message */}
-        <p className="text-gray-700">{message}</p>
+        <p className="text-gray-700 mb-6">{message}</p>
+
+        {/* Action Button */}
+        <button
+          onClick={onClose}
+          className="px-4 py-2 rounded-3xl w-32 h-10 bg-[#1E319D] text-white hover:bg-blue-600"
+        >
+          OK
+        </button>
       </div>
     </div>
   );
