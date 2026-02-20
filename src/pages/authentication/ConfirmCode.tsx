@@ -1,18 +1,17 @@
 import { verifyResetCodeApi } from "@/api/account/password-reset.api";
 import Button from "@/components/ButtonComponents.tsx";
 import Logo from "@/images/to-do.png";
+import { AxiosError } from "axios";
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import ModalPopup from "../../components/ModalPopup";
 import OtpInput from "./components/NumberCode";
-
 function ConfirmCode() {
   const [otpCode, setOtpCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const [resetToken, setResetToken] = useState(""); // ✅ added
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,10 +37,12 @@ function ConfirmCode() {
           state: { resetToken: token },
         });
       }, 2000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Invalid or expired code");
-    } finally {
-      setLoading(false);
+    } catch (err: unknown) {
+      if (err instanceof AxiosError) {
+        setError(err.response?.data?.message || "Invalid or expired code");
+      } else {
+        setError("Something went wrong");
+      }
     }
   };
 

@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { HiMiniEye, HiMiniEyeSlash } from "react-icons/hi2";
+import { HiMiniEye, HiMiniEyeSlash, HiOutlineEnvelope } from "react-icons/hi2";
 
 interface InputFieldsProps {
   type: string;
   name: string;
   value: string;
   placeholder?: string;
-  setValue?: (value: string) => void; // ✅ made optional
+  setValue?: (value: string) => void;
 }
 
 function InputFields({
@@ -20,10 +20,6 @@ function InputFields({
 
   const inputType = type === "password" && showPassword ? "text" : type;
 
-  const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
-  };
-
   return (
     <div className="relative">
       <input
@@ -33,27 +29,32 @@ function InputFields({
         placeholder={placeholder}
         onChange={(e) => {
           if (typeof setValue === "function") {
-            setValue(e.target.value); // ✅ safe check
+            setValue(e.target.value);
           }
         }}
         className="border border-black px-4.5 h-13 w-80.5 rounded-[20px] shadow-lg placeholder-gray-900 pr-12"
       />
 
+      {/* Password Toggle */}
       {type === "password" && (
         <button
           type="button"
-          onClick={togglePasswordVisibility}
+          onClick={() => setShowPassword((prev) => !prev)}
           className="absolute inset-y-0 right-0 flex items-center pr-4"
-          aria-label={showPassword ? "Hide password" : "Show password"}
         >
-          <div className="w-5 h-5 flex items-center justify-center">
-            {showPassword ? (
-              <HiMiniEye size={20} />
-            ) : (
-              <HiMiniEyeSlash size={20} />
-            )}
-          </div>
+          {showPassword ? (
+            <HiMiniEye size={20} />
+          ) : (
+            <HiMiniEyeSlash size={20} />
+          )}
         </button>
+      )}
+
+      {/* Email Icon */}
+      {type === "email" && (
+        <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+          <HiOutlineEnvelope size={20} className="text-gray-500" />
+        </div>
       )}
     </div>
   );

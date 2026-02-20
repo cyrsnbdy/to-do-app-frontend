@@ -148,13 +148,6 @@ function Login() {
             </div>
 
             <div className="flex flex-col text-left gap-1 ml-3 self-start">
-              <span className="text-sm">
-                Don't have an account?{" "}
-                <Link to="/signup">
-                  <TextComponents text="Sign-up" />
-                </Link>
-              </span>
-
               <CheckboxComponent
                 id="terms"
                 label="Remember Me?"
@@ -176,6 +169,13 @@ function Login() {
               <span className="mx-auto mt-1">
                 <Link to="/forgot-password">
                   <TextComponents text="Forgot Password?" />
+                </Link>
+              </span>
+
+              <span className="text-sm text-center">
+                Don't have an account?{" "}
+                <Link to="/signup" className="font-bold">
+                  <TextComponents text="Sign-up" />
                 </Link>
               </span>
             </div>
