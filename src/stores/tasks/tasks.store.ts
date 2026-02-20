@@ -22,7 +22,10 @@ type TaskStoreType = {
   tasks: TaskWithMeta[];
   selectedTask: TaskWithMeta | null;
 
-  createTask: (data: { task: string }) => Promise<boolean>;
+  createTask: (data: {
+    task: string;
+    taskDescription: string;
+  }) => Promise<boolean>;
   getTasks: () => Promise<boolean>;
   getTaskById: (id: string) => Promise<boolean>;
   updateTask: (id: string, data: Partial<TaskType>) => Promise<boolean>;
@@ -98,9 +101,6 @@ export const useTaskStore = create<TaskStoreType>((set, get) => ({
     set({ loading: true });
     try {
       const response = await updateTaskApi(id, data);
-
-      toast.success(response.message);
-
       set({
         tasks: get().tasks.map((task) =>
           task._id === id ? response.task : task,

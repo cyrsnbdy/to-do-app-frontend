@@ -1,5 +1,6 @@
 // Domain model (pure task data)
 export type TaskType = {
+  taskDescription: string;
   task: string;
   completed: boolean;
 };

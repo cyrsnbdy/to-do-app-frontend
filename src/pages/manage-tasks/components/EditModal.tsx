@@ -57,6 +57,14 @@ export const EditTaskModal = ({
             placeholder="Edit task"
             className="w-80 border border-[#1E319D] rounded-2xl p-2 mb-4"
           />
+
+          <input
+            type="text"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Edit task"
+            className="w-80 border border-[#1E319D] rounded-2xl p-2 mb-4"
+          />
           <div className="flex justify-center">
             <button
               type="submit"

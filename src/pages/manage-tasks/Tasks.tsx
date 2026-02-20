@@ -9,12 +9,12 @@ import { useAuthStore } from "@/stores/auth/auth.store";
 import { useTaskStore } from "@/stores/tasks/tasks.store";
 import { useTokenStore } from "@/stores/token/token.store";
 
+import { HiOutlineMagnifyingGlass } from "react-icons/hi2";
 import { AddTaskModal } from "./components/AddTaskModal";
 import CheckTasks from "./components/CheckTasks";
 import { DeleteTaskModal } from "./components/DeleteModal";
 import { EditTaskModal } from "./components/EditModal";
 import { ViewTaskModal } from "./components/viewTaskModal";
-import { HiOutlineMagnifyingGlass } from "react-icons/hi2";
 
 /* =======================
    Types
@@ -155,10 +155,13 @@ function Tasks() {
   }, [setLogout, navigate]);
 
   const handleAddTask = useCallback(
-    async (taskText: string) => {
+    async (taskText: string, taskDescription: string) => {
       try {
         setActionLoading(true);
-        const success = await createTask({ task: taskText });
+        const success = await createTask({
+          task: taskText,
+          taskDescription: taskDescription,
+        });
 
         if (!success) throw new Error();
 
@@ -174,10 +177,13 @@ function Tasks() {
   );
 
   const handleEditTask = useCallback(
-    async (taskId: string, newText: string) => {
+    async (taskId: string, newText: string, taskDescription: string) => {
       try {
         setActionLoading(true);
-        const success = await updateTask(taskId, { task: newText });
+        const success = await updateTask(taskId, {
+          task: newText,
+          taskDescription,
+        });
 
         if (!success) throw new Error();
 
@@ -290,7 +296,7 @@ function Tasks() {
           </div>
 
           {/* Task List */}
-          <div className="overflow-y-auto flex flex-col gap-3 h-80 w-full pr-2">
+          <div className="overflow-y-auto flex flex-col gap-3 h-100 w-full pr-2">
             {loadingTasks ? (
               <div className="text-center py-10 text-gray-500">
                 Loading tasks...
@@ -306,6 +312,7 @@ function Tasks() {
                 <CheckTasks
                   key={task._id}
                   taskText={task.task}
+                  taskDescription={task.taskDescription}
                   completed={task.completed}
                   onChange={() => handleToggle(task._id)}
                   onEdit={() => setModal({ type: "edit", task })}
@@ -341,7 +348,7 @@ function Tasks() {
             taskId={modal.task._id}
             initialText={modal.task.task}
             onEdit={(newText: string) =>
-              handleEditTask(modal.task._id, newText)
+              handleEditTask(modal.task._id, newText, taskDescription)
             }
           />
         )}
